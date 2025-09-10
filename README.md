@@ -1,4 +1,4 @@
-# Checkmk extension for ...
+# Checkmk extension for Inteliquent (A Sinch company) API
 
 ![build](https://github.com/jiuka/checkmk_template/workflows/build/badge.svg)
 ![flake8](https://github.com/jiuka/checkmk_template/workflows/Lint/badge.svg)
@@ -6,7 +6,7 @@
 
 ## Description
 
-This is a template to develop Checkmk Extensions
+This is a plugin to query the Inteliquent API v1.0.0 specifically for trunk groups and report in CheckMK.
 
 ## Development
 
