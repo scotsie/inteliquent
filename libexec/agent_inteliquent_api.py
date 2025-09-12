@@ -4,7 +4,7 @@ import sys
 import requests
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, UTC
 import argparse
 
 API_BASE = "https://services.inteliquent.com/Services/1.0.0"
@@ -116,7 +116,7 @@ def main():
     args = parser.parse_args()
 
     # Use original date format: YYYY-MM-DD
-    end_date = datetime.utcnow().strftime("%Y-%m-%d")
+    end_date = datetime.now(UTC).strftime("%Y-%m-%d")
     start_date = end_date  # Only poll for today
 
     all_results = {}
@@ -153,7 +153,7 @@ def main():
         all_results[label] = results
 
     if all_results:
-        print("<<<inteliquent_trunk_groups|(0)>>>")
+        print("<<<inteliquent_trunk_groups|sep(0)>>>")
         print(json.dumps(all_results, separators=(',', ':')))
 
 
