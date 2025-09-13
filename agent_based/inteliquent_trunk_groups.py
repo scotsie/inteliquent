@@ -48,10 +48,10 @@ def _extract_trunks(obj: Any) -> Iterable[Dict[str, Any]]:
         "DLLSTX37G14_6458": {... trunk ...}
       }
     }
-    This function walks the structure and emits every leaf trunk object.
+    This function walks the structure and yields every leaf trunk object.
     """
     if isinstance(obj, dict):
-        # If this dict looks like a trunk, emit it
+        # If this dict looks like a trunk, yields it
         if "customerTrunkGroupName" in obj:
             yield obj
         else:
@@ -70,6 +70,8 @@ def parse_inteliquent_trunk_groups(string_table: list[list[str]]) -> Section:
     """
     if not string_table:
         return {}
+    
+    print(f"Debug: string_table = {string_table}")
 
     try:
         # Join all lines (first column) into one JSON blob
@@ -125,7 +127,7 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     out_calls = util.get("outCalls")
     capacity = util.get("capacity")
 
-    # Always emit metrics if values are present
+    # Always yield metrics if values are present
     if isinstance(in_calls, (int, float)):
         yield Metric("inCalls", float(in_calls))
     if isinstance(out_calls, (int, float)):
@@ -145,7 +147,7 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         yield Result(state=State.UNKNOWN, summary="Utilization: invalid values")
         return
 
-    # Emit convenience percentage metric (optional)
+    # yield convenience percentage metric (optional)
     yield Metric("utilization_pct", pct)
 
     # Thresholds: WARN >= 80%, CRIT >= 90%
