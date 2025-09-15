@@ -1,13 +1,13 @@
 {
     'author': 'Scotsie (mscottcrace@gmail.com)',
     'description': u'Use the Inteliquent (A Sinch Company) API v1 to pull'
-                    'trunk group information and populate service for each.'
-                    'Metrics for the most recent interval of utilization is'
+                    'information and populate services for each trunk group.'
+                    'Metrics for the most recent interval of utilization are'
                     'leveraged for calculating percentage utilization and for graphing.',
     'download_url': 'https://github.com/scotsie/inteliquent',
     'files': {
         'cmk_addons_plugins': [
-                'inteliquent/agentbased/inteliquent_trunk_groups.py',
+                'inteliquent/agent_based/inteliquent_trunk_groups.py',
                 'inteliquent/libexec/agent_inteliquent_api.py',
                 'inteliquent/rulesets/special_agent_inteliquent.py',
                 'inteliquent/server_side_calls/inteliquent_api.py'],
