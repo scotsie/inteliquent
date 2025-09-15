@@ -153,7 +153,7 @@ def main():
         all_results[label] = results
 
     if all_results:
-        print("<<<inteliquent_trunk_groups|sep(0)>>>")
+        print("<<<inteliquent_trunk_groups:sep(0)>>>")
         print(json.dumps(all_results, separators=(',', ':')))
 
 

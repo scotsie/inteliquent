@@ -66,7 +66,7 @@ def _extract_trunks(obj: Any) -> Iterable[Dict[str, Any]]:
 def parse_inteliquent_trunk_groups(string_table: list[list[str]]) -> Section:
     """Reconstruct the JSON from the section body and map by customerTrunkGroupName.
 
-    With :sep(0), each row will be a single-element list containing the line.
+    With sep(0), each row will be a single-element list containing the line.
     """
     if not string_table:
         return {}
