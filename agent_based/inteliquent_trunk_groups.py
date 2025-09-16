@@ -14,7 +14,6 @@ Check:
 Metrics: inCalls, outCalls, capacity, utilization_pct (extra)
 """
 
-#from __future__ import annotations
 
 import json
 from typing import Any, Dict, Iterable, Mapping
@@ -145,7 +144,7 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         u_state = State.WARN
     else:
         u_state = State.OK
-    
+
     details = (
         f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\n"
         f"Status: {status}, Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\n"
