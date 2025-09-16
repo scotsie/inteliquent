@@ -25,7 +25,7 @@ def _commands_from_params(params: dict, host_config):
     yield SpecialAgentCommand(command_arguments=args)
 
 special_agent_inteliquent_api = SpecialAgentConfig(
-    name="agent_inteliquent_api",
+    name="inteliquent_api",
     parameter_parser=noop_parser,
     commands_function=_commands_from_params,
 )
