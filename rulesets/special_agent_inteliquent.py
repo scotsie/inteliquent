@@ -9,27 +9,6 @@ from cmk.rulesets.v1.form_specs import (
 )
 
 
-def _migrate_single_to_list(params: dict) -> dict:
-    """Backward-compat: if the old single-account keys exist, convert to 'accounts' list.
-
-    Old keys (example): api_key, api_secret, label, debug
-    New shape: {'accounts': [{'api_key': ..., 'api_secret': ..., 'label': ...}], 'debug': ...}
-    """
-    if "accounts" in params:
-        return params
-
-    # Detect old single-account config
-    if all(k in params for k in ("api_key", "api_secret", "label")):
-        params = dict(params)  # shallow copy
-        single = {
-            "api_key": params.pop("api_key"),
-            "api_secret": params.pop("api_secret"),
-            "label": params.pop("label"),
-        }
-        params["accounts"] = [single]
-    return params
-
-
 def _form_special_agent_inteliquent_api() -> Dictionary:
     return Dictionary(
         title=Title("Inteliquent API (special agent)"),
