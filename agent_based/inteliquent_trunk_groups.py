@@ -70,8 +70,6 @@ def parse_inteliquent_trunk_groups(string_table: list[list[str]]) -> Section:
     """
     if not string_table:
         return {}
-    
-    print(f"Debug: string_table = {string_table}")
 
     try:
         # Join all lines (first column) into one JSON blob

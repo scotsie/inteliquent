@@ -9,8 +9,6 @@ def _commands_from_params(params: dict, host_config):
     # Global flag first (optional)
     if params.get("debug"):
         args.append("--debug")
-    
-    print(f"Debug mode: {params=}")
 
     # Append one '--account API_KEY API_SECRET LABEL' group for each entry
     for acct in params.get("accounts", []):
