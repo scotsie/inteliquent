@@ -4,7 +4,7 @@ import sys
 import requests
 import base64
 import json
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 import argparse
 
 API_BASE = "https://services.inteliquent.com/Services/1.0.0"
@@ -117,7 +117,7 @@ def main():
 
     # Use original date format: YYYY-MM-DD
     end_date = datetime.now(UTC).strftime("%Y-%m-%d")
-    start_date = end_date  # Only poll for today
+    start_date = (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d")
 
     all_results = {}
     for api_key, api_secret, label in args.account:

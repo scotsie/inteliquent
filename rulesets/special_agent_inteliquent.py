@@ -16,7 +16,6 @@ def _form_special_agent_inteliquent_api() -> Dictionary:
             "Configure one or more accounts. Each entry maps to a repeated command-line "
             "group:  --account API_KEY API_SECRET LABEL"
         ),
-        migrate=_migrate_single_to_list,
         elements={
             "accounts": DictElement(
                 parameter_form=List(
