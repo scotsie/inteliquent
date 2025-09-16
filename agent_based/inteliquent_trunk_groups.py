@@ -145,6 +145,13 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         u_state = State.WARN
     else:
         u_state = State.OK
+    
+    details = (
+        f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\n"
+        f"Status: {status}, Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\n"
+        f"e911Enabled: {data.get('e911Enabled','?')}\n"
+        f"accessType: {data.get('accessType')}"
+    )
 
     # Compose summary based on state
     if u_state == State.OK:
@@ -155,7 +162,7 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     yield Result(
         state=u_state,
         summary=summary,
-        details=f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\nUtilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\ne911Enabled: {data.get('e911Enabled','?')}\naccessType:{data.get('accessType')}"
+        details=details
     )
 
     # Optional: include active sessions as a metric if present
