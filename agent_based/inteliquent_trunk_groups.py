@@ -34,39 +34,39 @@ Section = Mapping[str, Dict[str, Any]]  # key: customerTrunkGroupName -> trunk d
 # --------------------------
 # Parser
 # --------------------------
-def _extract_trunks(obj: Any) -> Iterable[Dict[str, Any]]:
-    """Yield each trunk dict that contains 'customerTrunkGroupName'.
-
-    The sample JSON shows nested groups like:
-    {
-      "Momentum": {
-        "ATLNGAQSMOM_6449": {... trunk ...},
-        "ATLNGAQSMOM_2167": {... trunk ...}
-      },
-      "G12COM - Core": {
-        "LSANCARCG18_4056": {... trunk ...},
-        "DLLSTX37G14_6458": {... trunk ...}
-      }
-    }
-    This function walks the structure and yields every leaf trunk object.
-    """
+def _extract_trunks(obj: Any, company: str = None) -> Iterable[Dict[str, Any]]:
+    """Yield each trunk dict that contains 'customerTrunkGroupName', adding 'company' key."""
     if isinstance(obj, dict):
         # If this dict looks like a trunk, yields it
         if "customerTrunkGroupName" in obj:
-            yield obj
+            trunk = dict(obj)  # shallow copy
+            if company:
+                trunk["company"] = company
+            yield trunk
         else:
-            # Otherwise recurse into children
-            for v in obj.values():
-                yield from _extract_trunks(v)
+            # Otherwise recurse into children, passing down the parent key as company
+            for k, v in obj.items():
+                yield from _extract_trunks(v, company=k)
     elif isinstance(obj, list):
         for v in obj:
-            yield from _extract_trunks(v)
+            yield from _extract_trunks(v, company=company)
 
 
 def parse_inteliquent_trunk_groups(string_table: list[list[str]]) -> Section:
     """Reconstruct the JSON from the section body and map by customerTrunkGroupName.
-
     With sep(0), each row will be a single-element list containing the line.
+    Sample Data in pretty format for readability, standard is single row.
+    <<<inteliquent_trunk_groups:sep(0)>>>
+    {"CompanyName":{
+        "TrunkGroup_11":{
+            "activeSessionCount":50,
+            "status":"In Service",
+            "accessType":"Public",
+            "customerTrunkGroupName":"Customer Trunk 11",
+            "e911Enabled":"N",
+            "utilization":{"trunkGroupDate":"09/15/2025 21:05","inCalls":35,"outCalls":0,"capacity":50}
+        }
+    }}
     """
     if not string_table:
         return {}
