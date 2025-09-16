@@ -33,7 +33,7 @@ metric_outcalls = Metric(
     name="outCalls",
     title=Title("Outbound Calls"),
     unit=unit_count,
-    color=Color.ORANGE
+    color=Color.GREEN
 )
 
 
@@ -41,7 +41,7 @@ metric_capacity = Metric(
     name="capacity",
     title=Title("Capacity"),
     unit=unit_count,
-    color=Color.BLACK
+    color=Color.LIGHT_RED
 )
 
 
@@ -57,7 +57,7 @@ metric_active_sessions = Metric(
     name="active_sessions",
     title=Title("Active Sessions"),
     unit=unit_count,
-    color=None
+    color=Color.GREEN
 )
 
 
