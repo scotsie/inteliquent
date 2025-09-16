@@ -12,12 +12,10 @@ def _commands_from_params(params: dict, host_config):
 
     # Append one '--account API_KEY API_SECRET LABEL' group for each entry
     for acct in params.get("accounts", []):
+        company = acct.get("company")
         api_key = acct.get("api_key")
         api_secret = acct.get("api_secret")
-        label = acct.get("label")
-        # If using Password form specs, values may be objects; convert to cleartext if needed
-        # depending on how Password returns its data in your CMK version.
-        args += ["--account", api_key, api_secret, label]
+        args += ["--account", company, api_key, api_secret]
 
     # Single command invocation with repeated '--account' segments
     yield SpecialAgentCommand(command_arguments=args)

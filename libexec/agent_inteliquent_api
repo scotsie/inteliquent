@@ -111,8 +111,8 @@ def fetch_trunk_group_utilization(api_key, api_secret, trunk_group_name, start_d
 def main():
     parser = argparse.ArgumentParser(description="Fetch Inteliquent trunk group details and utilization.")
     parser.add_argument('--debug', action='store_true', help='Enable debug output')
-    parser.add_argument('--account', nargs=3, action='append', metavar=('API_KEY', 'API_SECRET', 'LABEL'), required=True,
-                        help='API key, secret, and label triple. Can be specified multiple times.')
+    parser.add_argument('--account', nargs=3, action='append', metavar=('COMPANY', 'API_KEY', 'API_SECRET'), required=True,
+                        help='Company, API key and API secret parameters. Can be specified multiple times.')
     args = parser.parse_args()
 
     # Use original date format: YYYY-MM-DD
@@ -120,12 +120,12 @@ def main():
     start_date = (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d")
 
     all_results = {}
-    for api_key, api_secret, label in args.account:
+    for company, api_key, api_secret in args.account:
         if args.debug:
-            print(f"\nFetching trunk group list for {label}")
+            print(f"\nFetching trunk group list for {company}")
         trunk_groups = fetch_trunk_groups(api_key, api_secret, args.debug)
         if args.debug:
-            print(f"Found {len(trunk_groups)} trunk groups for {label}")
+            print(f"Found {len(trunk_groups)} trunk groups for {company}")
 
         results = {}
         for tg in trunk_groups:
@@ -150,7 +150,7 @@ def main():
                     "e911Enabled": e911_enabled,
                     "utilization": utilization
                 }
-        all_results[label] = results
+        all_results[company] = results
 
     if all_results:
         print("<<<inteliquent_trunk_groups:sep(0)>>>")

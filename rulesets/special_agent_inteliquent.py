@@ -4,8 +4,6 @@
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic, Title, Help
 from cmk.rulesets.v1.form_specs import (
     Dictionary, DictElement, List, String, BooleanChoice, DefaultValue,
-    # If you want password store fields, uncomment:
-    # Password,
 )
 
 
@@ -14,7 +12,7 @@ def _form_special_agent_inteliquent_api() -> Dictionary:
         title=Title("Inteliquent API (special agent)"),
         help_text=Help(
             "Configure one or more accounts. Each entry maps to a repeated command-line "
-            "group:  --account API_KEY API_SECRET LABEL"
+            "group:  --account COMPANY API_KEY API_SECRET"
         ),
         elements={
             "accounts": DictElement(
@@ -23,16 +21,16 @@ def _form_special_agent_inteliquent_api() -> Dictionary:
                     element_template=Dictionary(
                         title=Title("Account"),
                         elements={
+                            "company": DictElement(
+                                parameter_form=String(title=Title("Company")),
+                                required=True,
+                            ),
                             "api_key": DictElement(
                                 parameter_form=String(title=Title("API key")),
                                 required=True,
                             ),
                             "api_secret": DictElement(
                                 parameter_form=String(title=Title("API secret")),
-                                required=True,
-                            ),
-                            "label": DictElement(
-                                parameter_form=String(title=Title("Label")),
                                 required=True,
                             ),
                         },
@@ -53,7 +51,7 @@ def _form_special_agent_inteliquent_api() -> Dictionary:
 
 
 rule_spec_inteliquent_api = SpecialAgent(
-    name="inteliquent_api",                # refers to executable 'agent_inteliquent_api'
+    name="inteliquent_api",
     title=Title("Inteliquent API"),
     topic=Topic.CLOUD,
     parameter_form=_form_special_agent_inteliquent_api,
