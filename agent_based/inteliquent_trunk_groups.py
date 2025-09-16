@@ -104,9 +104,23 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     if isinstance(status, str):
         norm = _normalize_status(status)
         st = State.OK if norm == "inservice" else State.CRIT
-        yield Result(state=st, summary=f"Status: {status}")
+        details = (
+            f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\n"
+            f"Status: {status}"
+        )
+        yield Result(
+            state=st,
+            summary=f"Status: {status}",
+            details=details
+        )
     else:
-        yield Result(state=State.UNKNOWN, summary="Status: missing")
+        yield Result(
+            state=State.UNKNOWN,
+            summary="Status: missing",
+            details=(
+                f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\n",
+                f"Status: missing")
+        )
 
     # --- Utilization evaluation & metrics ---
     util = data.get("utilization") or {}
@@ -145,18 +159,17 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     else:
         u_state = State.OK
 
-    details = (
-        f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\n"
-        f"Status: {status}, Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\n"
-        f"e911Enabled: {data.get('e911Enabled','?')}\n"
-        f"accessType: {data.get('accessType')}"
-    )
-
     # Compose summary based on state
     if u_state == State.OK:
         summary = f"Utilization: {pct:.1f}%"
     else:
         summary = f"Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})"
+
+    details = (
+        f"Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\n"
+        f"features:\n  e911Enabled: {data.get('e911Enabled', '?')}\n"
+        f"  accessType: {data.get('accessType')}"
+    )
 
     yield Result(
         state=u_state,
