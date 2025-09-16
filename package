@@ -7,10 +7,10 @@
     'download_url': 'https://github.com/scotsie/inteliquent',
     'files': {
         'cmk_addons_plugins': [
-                'inteliquent/agent_based/inteliquent_trunk_groups.py',
-                'inteliquent/libexec/agent_inteliquent_api',
-                'inteliquent/rulesets/special_agent_inteliquent.py',
-                'inteliquent/server_side_calls/inteliquent_api.py'],
+                'inteliquent_api/agent_based/inteliquent_trunk_groups.py',
+                'inteliquent_api/libexec/agent_inteliquent_api',
+                'inteliquent_api/rulesets/special_agent_inteliquent.py',
+                'inteliquent_api/server_side_calls/inteliquent_api.py'],
     },
     'name': 'inteliquent_api',
     'title': u'Inteliquent API Special Agent',
