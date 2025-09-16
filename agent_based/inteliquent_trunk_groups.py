@@ -53,39 +53,29 @@ def _extract_trunks(obj: Any, company: str = None) -> Iterable[Dict[str, Any]]:
 
 
 def parse_inteliquent_trunk_groups(string_table: list[list[str]]) -> Section:
-    """Reconstruct the JSON from the section body and map by customerTrunkGroupName.
-    With sep(0), each row will be a single-element list containing the line.
-    Sample Data in pretty format for readability, standard is single row.
-    <<<inteliquent_trunk_groups:sep(0)>>>
-    {"CompanyName":{
-        "TrunkGroup_11":{
-            "activeSessionCount":50,
-            "status":"In Service",
-            "accessType":"Public",
-            "customerTrunkGroupName":"Customer Trunk 11",
-            "e911Enabled":"N",
-            "utilization":{"trunkGroupDate":"09/15/2025 21:05","inCalls":35,"outCalls":0,"capacity":50}
-        }
-    }}
-    """
+    """Parse trunk groups, explicitly mapping company names to each trunk group."""
     if not string_table:
         return {}
 
     try:
-        # Join all lines (first column) into one JSON blob
         raw = "".join(row[0] for row in string_table if row)
         payload = json.loads(raw)
     except Exception:
-        # If parsing fails, return empty and let the check report UNKNOWN
         return {}
 
     by_name: Dict[str, Dict[str, Any]] = {}
-    for trunk in _extract_trunks(payload):
-        name = trunk.get("customerTrunkGroupName")
-        if not isinstance(name, str) or not name.strip():
-            # Skip malformed entries
+    # Explicitly iterate over companies and trunk groups
+    for company, trunks in payload.items():
+        if not isinstance(trunks, dict):
             continue
-        by_name[name] = trunk
+        for trunk_id, trunk_data in trunks.items():
+            # Add company to trunk_data
+            trunk = dict(trunk_data)
+            trunk["company"] = company
+            name = trunk.get("customerTrunkGroupName")
+            if not isinstance(name, str) or not name.strip():
+                continue
+            by_name[name] = trunk
     return by_name
 
 
@@ -156,10 +146,16 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     else:
         u_state = State.OK
 
-    # Compose a concise summary
+    # Compose summary based on state
+    if u_state == State.OK:
+        summary = f"Utilization: {pct:.1f}%"
+    else:
+        summary = f"Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})"
+
     yield Result(
         state=u_state,
-        summary=f"Utilization: {used:.0f}/{capf:.0f} ({pct:.1f}%)",
+        summary=summary,
+        details=f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\nUtilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\ne911Enabled: {data.get('e911Enabled','?')}\naccessType:{data.get('accessType')}"
     )
 
     # Optional: include active sessions as a metric if present
