@@ -20,11 +20,13 @@ from typing import Any, Dict, Iterable, Mapping
 
 from cmk.agent_based.v2 import (
     AgentSection,
+    check_levels,
     CheckPlugin,
-    Service,
-    Result,
-    State,
     Metric,
+    Result,
+    Service,
+    State,
+    
 )
 
 Section = Mapping[str, Dict[str, Any]]  # key: customerTrunkGroupName -> trunk dict
@@ -98,16 +100,23 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     if not data:
         yield Result(state=State.UNKNOWN, summary="No data for item")
         return
+    else:
+        yield Result(
+            state=State.OK,
+            summary=f"Type: {data.get('accessType', '?')}",
+            details=(
+                f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\n"
+                f"features:\ne911Enabled: {data.get('e911Enabled', '?')}\nType: {data.get('accessType', '?')}"
+            )
+        )
 
     # --- Status evaluation ---
     status = data.get("status")
     if isinstance(status, str):
         norm = _normalize_status(status)
         st = State.OK if norm == "inservice" else State.CRIT
-        details = (
-            f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\n"
-            f"Status: {status}"
-        )
+        details = f"Status: {status}"
+
         yield Result(
             state=st,
             summary=f"Status: {status}",
@@ -117,9 +126,6 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         yield Result(
             state=State.UNKNOWN,
             summary="Status: missing",
-            details=(
-                f"Sinch trunk {data.get('customerTrunkGroupName')} in company {data.get('company', 'MISSING')}\n",
-                f"Status: missing")
         )
 
     # --- Utilization evaluation & metrics ---
@@ -127,6 +133,7 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     in_calls = util.get("inCalls")
     out_calls = util.get("outCalls")
     capacity = util.get("capacity")
+    active_sessions = util.get("active_sessions")
 
     # Always yield metrics if values are present
     if isinstance(in_calls, (int, float)):
@@ -135,6 +142,12 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         yield Metric("outCalls", float(out_calls))
     if isinstance(capacity, (int, float)):
         yield Metric("capacity", float(capacity))
+    if isinstance(active_sessions, (int, float)) and isinstance(capacity, (int, float)):
+        if active_sessions != capacity:
+            yield Result(
+                state=State.WARN,
+                notice=f"Active Sessions {active_sessions} does not match Capacity {capacity}."
+            )
 
     if any(v is None for v in (in_calls, out_calls, capacity)) or not capacity:
         yield Result(state=State.UNKNOWN, summary="Utilization: missing")
@@ -144,42 +157,25 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         used = float(in_calls) + float(out_calls)
         capf = float(capacity)
         pct = 100.0 * used / capf if capf else 0.0
+        pcti = int(pct)
     except Exception:
         yield Result(state=State.UNKNOWN, summary="Utilization: invalid values")
         return
 
-    # yield convenience percentage metric (optional)
-    yield Metric("utilization_pct", pct)
+    pct_upper_warn = 80
+    pct_upper_crit = 90
 
-    # Thresholds: WARN >= 80%, CRIT >= 90%
-    if pct >= 90.0:
-        u_state = State.CRIT
-    elif pct >= 80.0:
-        u_state = State.WARN
-    else:
-        u_state = State.OK
-
-    # Compose summary based on state
-    if u_state == State.OK:
-        summary = f"Utilization: {pct:.1f}%"
-    else:
-        summary = f"Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})"
-
-    details = (
-        f"Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\n"
-        f"features:\n  e911Enabled: {data.get('e911Enabled', '?')}\n"
-        f"  accessType: {data.get('accessType')}"
-    )
-
-    yield Result(
-        state=u_state,
-        summary=summary,
-        details=details
-    )
-
-    # Optional: include active sessions as a metric if present
-    if isinstance(data.get("activeSessionCount"), (int, float)):
-        yield Metric("active_sessions", float(data["activeSessionCount"]))
+    if isinstance(pct, (int, float)):
+        details = f"Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\n"
+    
+        yield from check_levels(
+            pcti,
+            label="Utilization",
+            levels_upper=("fixed", (pct_upper_warn, pct_upper_crit)),
+            metric_name="utilization_pct",
+            boundaries=(0, 100),
+            render_func=lambda v: "%.1f%%" % v,
+        )
 
 
 # --------------------------
