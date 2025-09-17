@@ -192,7 +192,7 @@ agent_section_inteliquent_api = AgentSection(
 
 check_plugin_inteliquent_api = CheckPlugin(
     name="inteliquent_trunk_groups",
-    service_name="Inteliquent trunk %s",
+    service_name="trunk group %s",
     discovery_function=discover_inteliquent_trunk_groups,
     check_function=check_inteliquent_trunk_groups,
 )
