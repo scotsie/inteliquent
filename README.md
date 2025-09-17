@@ -12,6 +12,10 @@ This is a plugin to query the Inteliquent API v1.0.0 specifically for trunk grou
 
 For the best development experience use [VSCode](https://code.visualstudio.com/) with the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. This maps your workspace into a checkmk docker container giving you access to the python environment and libraries the installed extension has.
 
+I can't take credit for this setup as I used this template by [jiuka](https://github.com/jiuka/checkmk_template) to start learning to develop locally using the opensource build of CheckMK.
+
+Also a word of appreciation to [Yogibaer75](https://github.com/Yogibaer75) for his publicly available plugins for 2.3.0pXX releases to help fill in gaps in the documentation (which is good but for a novice like me, still somewhat confusing).
+
 ## Directories
 
 The following directories in this repo are getting mapped into the Checkmk site.
