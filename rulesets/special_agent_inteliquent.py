@@ -39,13 +39,6 @@ def _form_special_agent_inteliquent_api() -> Dictionary:
                 ),
                 required=True,
             ),
-            "debug": DictElement(
-                parameter_form=BooleanChoice(
-                    title=Title("Enable --debug"),
-                    prefill=DefaultValue(False),
-                ),
-                required=False,
-            ),
         },
     )
 
