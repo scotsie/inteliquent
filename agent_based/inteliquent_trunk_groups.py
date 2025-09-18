@@ -95,8 +95,9 @@ def _normalize_status(text: str) -> str:
     return "".join(text.lower().split())  # lower, remove spaces
 
 
-def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Result | Metric]:
+def check_inteliquent_trunk_groups(item: str, params: Dict[str, Any], section: Section) -> Iterable[Result | Metric]:
     data = section.get(item)
+
     if not data:
         yield Result(state=State.UNKNOWN, summary="No data for item")
         return
@@ -162,16 +163,17 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         yield Result(state=State.UNKNOWN, summary="Utilization: invalid values")
         return
 
-    pct_upper_warn = 80
-    pct_upper_crit = 90
-
     if isinstance(pct, (int, float)):
         details = f"Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\n"
     
+        # Get utilization thresholds from params
+        levels_upper = params.get('utilization_upper_thresholds')
+
+        # Use check_levels for utilization percentage
         yield from check_levels(
-            pcti,
+            pct,
             label="Utilization",
-            levels_upper=("fixed", (pct_upper_warn, pct_upper_crit)),
+            levels_upper=levels_upper,
             metric_name="utilization_pct",
             boundaries=(0, 100),
             render_func=lambda v: "%.1f%%" % v,
@@ -179,7 +181,7 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
 
 
 # --------------------------
-# Registration
+# Registrations
 # --------------------------
 agent_section_inteliquent_api = AgentSection(
     name="inteliquent_trunk_groups",
@@ -191,4 +193,6 @@ check_plugin_inteliquent_api = CheckPlugin(
     service_name="trunk group %s",
     discovery_function=discover_inteliquent_trunk_groups,
     check_function=check_inteliquent_trunk_groups,
+    check_ruleset_name="inteliquent_api_tg",
+    check_default_parameters= {'utilization_upper_thresholds': ('fixed', (80.0, 90.0))}
 )

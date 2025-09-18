@@ -1,9 +1,25 @@
 #!/usr/bin/env python3
 # Checkmk 2.3+/2.4+ ruleset for Inteliquent special agent (multi-account)
 
-from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic, Title, Help
+from cmk.rulesets.v1.rule_specs import (
+    CheckParameters,
+    Help,
+    HostAndItemCondition,
+    LengthInRange,
+    SpecialAgent,
+    Topic,
+    Title
+)
 from cmk.rulesets.v1.form_specs import (
-    Dictionary, DictElement, List, String, BooleanChoice, DefaultValue,
+    Dictionary,
+    DictElement,
+    Float,
+    InputHint,
+    LevelDirection,
+    List,
+    migrate_to_float_simple_levels,
+    SimpleLevels,
+    String
 )
 
 
@@ -49,3 +65,33 @@ rule_spec_inteliquent_api = SpecialAgent(
     topic=Topic.CLOUD,
     parameter_form=_form_special_agent_inteliquent_api,
 )
+
+
+#def _parameter_valuespec_trunk_group() -> Dictionary:
+#    return Dictionary(
+#        title=Title("Trunk Group Utilization Parameters"),
+#        elements={
+#            "utilization_upper_thresholds": DictElement(
+#                parameter_form=SimpleLevels(
+#                    title=Title("Upper Utilization Levels"),
+#                    form_spec_template=Float(),
+#                    prefill_fixed_levels=InputHint((80.0, 90.0)),
+#                    level_direction=LevelDirection.UPPER,
+#                    migration_function=migrate_to_float_simple_levels,
+#                ),
+#                required=False,
+#            ),
+#        },
+#    )
+
+
+#rule_spec_inteliquent_api_tg_utilization = CheckParameters(
+#    name="inteliquent_api_tg_utilization",
+#    title=Title("Inteliquent API Trunk Group Utilization"),
+#    topic=Topic.CLOUD,
+#    parameter_form=_parameter_valuespec_trunk_group,
+#    conditions=HostAndItemCondition(
+#        item_title=Title("Trunk Group Utilization"),
+#        item_form=String(min_length=1),  # Use min_length instead of custom_validate
+#    ),
+#

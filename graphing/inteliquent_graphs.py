@@ -53,12 +53,12 @@ metric_utilization_pct = Metric(
 )
 
 
-metric_active_sessions = Metric(
-    name="active_sessions",
-    title=Title("Active Sessions"),
-    unit=unit_count,
-    color=Color.GREEN
-)
+#metric_active_sessions = Metric(
+#    name="active_sessions",
+#    title=Title("Active Sessions"),
+#    unit=unit_count,
+#    color=Color.GREEN
+#)
 
 
 graph_trunk_utilization = Graph(
