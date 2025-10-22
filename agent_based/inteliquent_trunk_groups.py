@@ -162,16 +162,12 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         yield Result(state=State.UNKNOWN, summary="Utilization: invalid values")
         return
 
-    pct_upper_warn = 80
-    pct_upper_crit = 90
-
     if isinstance(pct, (int, float)):
         details = f"Utilization: {pct:.1f}% ({used:.0f}/{capf:.0f})\n"
-    
+
         yield from check_levels(
             pcti,
-            label="Utilization",
-            levels_upper=("fixed", (pct_upper_warn, pct_upper_crit)),
+            label="Utilization %",
             metric_name="utilization_pct",
             boundaries=(0, 100),
             render_func=lambda v: "%.1f%%" % v,
@@ -188,7 +184,7 @@ agent_section_inteliquent_api = AgentSection(
 
 check_plugin_inteliquent_api = CheckPlugin(
     name="inteliquent_trunk_groups",
-    service_name="trunk group %s",
+    service_name="trunk %s",
     discovery_function=discover_inteliquent_trunk_groups,
     check_function=check_inteliquent_trunk_groups,
 )

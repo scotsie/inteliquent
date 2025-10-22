@@ -47,7 +47,7 @@ metric_capacity = Metric(
 
 metric_utilization_pct = Metric(
     name="utilization_pct",
-    title=Title("Utilization"),
+    title=Title("Utilization %"),
     unit=unit_percentage,
     color=Color.GREEN
 )

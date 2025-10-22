@@ -15,7 +15,7 @@
     },
     'name': 'inteliquent_api',
     'title': u'Inteliquent API Special Agent',
-    'version': '0.0.7',
+    'version': '0.0.9',
     'version.min_required': '2.3.0p14',
     'version.packaged': '2.3.0p36',
     'version.usable_until': '2.6.0',
