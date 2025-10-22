@@ -3,6 +3,7 @@
 
 from cmk.server_side_calls.v1 import SpecialAgentConfig, SpecialAgentCommand, noop_parser
 
+
 def _commands_from_params(params: dict, host_config):
     args = []
 
@@ -19,6 +20,7 @@ def _commands_from_params(params: dict, host_config):
 
     # Single command invocation with repeated '--account' segments
     yield SpecialAgentCommand(command_arguments=args)
+
 
 special_agent_inteliquent_api = SpecialAgentConfig(
     name="inteliquent_api",

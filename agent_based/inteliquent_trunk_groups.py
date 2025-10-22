@@ -25,8 +25,7 @@ from cmk.agent_based.v2 import (
     Metric,
     Result,
     Service,
-    State,
-    
+    State
 )
 
 Section = Mapping[str, Dict[str, Any]]  # key: customerTrunkGroupName -> trunk dict

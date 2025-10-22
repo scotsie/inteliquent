@@ -3,7 +3,7 @@
 
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic, Title, Help
 from cmk.rulesets.v1.form_specs import (
-    Dictionary, DictElement, List, String, BooleanChoice, DefaultValue,
+    Dictionary, DictElement, List, String
 )
 
 
