@@ -21,7 +21,7 @@ unit_percentage = Unit(DecimalNotation("%"))
 unit_count = Unit(DecimalNotation(""))
 
 
-metric_incalls = Metric(
+metric_inteliquent_incalls = Metric(
     name="inCalls",
     title=Title("Inbound Calls"),
     unit=unit_count,
@@ -29,7 +29,7 @@ metric_incalls = Metric(
 )
 
 
-metric_outcalls = Metric(
+metric_inteliquent_outcalls = Metric(
     name="outCalls",
     title=Title("Outbound Calls"),
     unit=unit_count,
@@ -37,7 +37,7 @@ metric_outcalls = Metric(
 )
 
 
-metric_capacity = Metric(
+metric_inteliquent_capacity = Metric(
     name="capacity",
     title=Title("Capacity"),
     unit=unit_count,
@@ -45,7 +45,7 @@ metric_capacity = Metric(
 )
 
 
-metric_utilization_pct = Metric(
+metric_inteliquent_utilization_pct = Metric(
     name="utilization_pct",
     title=Title("Utilization %"),
     unit=unit_percentage,
@@ -53,7 +53,7 @@ metric_utilization_pct = Metric(
 )
 
 
-metric_active_sessions = Metric(
+metric_inteliquent_active_sessions = Metric(
     name="active_sessions",
     title=Title("Active Sessions"),
     unit=unit_count,
@@ -61,7 +61,7 @@ metric_active_sessions = Metric(
 )
 
 
-graph_trunk_utilization = Graph(
+graph_inteliquent_trunk_utilization = Graph(
     name="inteliquent_trunk_utilization",
     title=Title("Trunk Utilization"),
     compound_lines=[
@@ -74,7 +74,7 @@ graph_trunk_utilization = Graph(
 )
 
 
-perfometer_trunk_utilization_pct = Perfometer(
+perfometer_inteliquent_trunk_utilization_pct = Perfometer(
     name="utilization_pct",
     focus_range=FocusRange(
         lower=Closed(0),
