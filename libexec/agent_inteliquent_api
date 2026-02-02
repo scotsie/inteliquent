@@ -135,7 +135,10 @@ def main():
             if args.debug:
                 print(f"\nFetching details for trunk group: {name}")
             detail = fetch_trunk_group_detail(api_key, api_secret, name, args.debug)
-            utilization = fetch_trunk_group_utilization(api_key, api_secret, name, start_date, end_date, args.debug)
+            # Skip utilization API call for Pending trunks (API returns 430 error)
+            utilization = None
+            if detail and detail.get("status") != "Pending":
+                utilization = fetch_trunk_group_utilization(api_key, api_secret, name, start_date, end_date, args.debug)
             if detail:
                 customer_name = detail.get("customerTrunkGroupName")
                 if not customer_name:

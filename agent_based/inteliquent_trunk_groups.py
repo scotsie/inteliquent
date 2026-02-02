@@ -113,7 +113,12 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     status = data.get("status")
     if isinstance(status, str):
         norm = _normalize_status(status)
-        st = State.OK if norm == "inservice" else State.CRIT
+        if norm == "inservice":
+            st = State.OK
+        elif norm == "pending":
+            st = State.WARN
+        else:
+            st = State.CRIT
         details = f"Status: {status}"
 
         yield Result(
@@ -128,6 +133,10 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
         )
 
     # --- Utilization evaluation & metrics ---
+    # Skip utilization check entirely for Pending trunks (utilization is null/not available)
+    if isinstance(status, str) and _normalize_status(status) == "pending":
+        return
+
     util = data.get("utilization") or {}
     in_calls = util.get("inCalls")
     out_calls = util.get("outCalls")
