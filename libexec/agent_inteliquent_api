@@ -172,7 +172,7 @@ def main():
     }
 
     if all_results:
-        print("<<<inteliquent_trunk_groups:sep(0)>>>")
+        print("<<<inteliquent_trunks:sep(0)>>>")
         print(json.dumps(output, separators=(',', ':')))
 
 

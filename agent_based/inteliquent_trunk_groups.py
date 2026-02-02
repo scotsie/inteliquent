@@ -4,7 +4,7 @@
 Inteliquent trunk groups - agent-based check (Checkmk 2.3+ / API v2)
 
 Section header expected from special agent:
-    <<<inteliquent_trunk_groups:sep(0)>>>
+    <<<inteliquent_trunks:sep(0)>>>
     { ... JSON ... }
 
 Discovery:
@@ -35,10 +35,20 @@ from cmk.agent_based.v2 import (
     Metric,
     Result,
     Service,
-    State
+    State,
 )
 
 Section = Mapping[str, Any]  # Contains individual trunks, grouped trunks, and metadata
+
+# Default check parameters
+DEFAULT_PARAMS = {
+    "utilization_levels": ("fixed", (80, 90)),  # SimpleLevels format: (type, (warn, crit))
+    "status_mapping": {
+        "inservice": 0,  # OK
+        "pending": 1,    # WARN
+        "other": 2,      # CRIT
+    }
+}
 
 
 # --------------------------
@@ -135,7 +145,32 @@ def _normalize_status(text: str) -> str:
     return "".join(text.lower().split())
 
 
-def _check_individual_trunk(item: str, trunk_data: Dict[str, Any]) -> Iterable[Result | Metric]:
+def _get_state_value(mapping_value: Any) -> int:
+    """
+    Convert status mapping value to integer state value.
+    Supports both integer values and string identifiers.
+    """
+    if isinstance(mapping_value, int):
+        return mapping_value
+
+    if isinstance(mapping_value, str):
+        # Handle numeric strings (legacy support)
+        if mapping_value.isdigit():
+            return int(mapping_value)
+
+        # Handle named identifiers from ruleset
+        mapping = {
+            "ok": 0,
+            "warning": 1,
+            "critical": 2,
+            "unknown": 3,
+        }
+        return mapping.get(mapping_value.lower(), 3)  # Default to UNKNOWN
+
+    return 3  # Default to UNKNOWN for any other type
+
+
+def _check_individual_trunk(item: str, trunk_data: Dict[str, Any], params: Mapping[str, Any]) -> Iterable[Result | Metric]:
     """Check logic for individual trunk groups."""
     
     yield Result(
@@ -151,13 +186,22 @@ def _check_individual_trunk(item: str, trunk_data: Dict[str, Any]) -> Iterable[R
     status = trunk_data.get("status")
     if isinstance(status, str):
         norm = _normalize_status(status)
+        status_mapping = params.get("status_mapping", DEFAULT_PARAMS["status_mapping"])
+
+        # Map the normalized status to a state value
         if norm == "inservice":
-            st = State.OK
+            mapping_value = status_mapping.get("inservice", 0)
         elif norm == "pending":
-            st = State.WARN
+            mapping_value = status_mapping.get("pending", 1)
         else:
-            st = State.CRIT
-        
+            mapping_value = status_mapping.get("other", 2)
+
+        # Convert mapping value to integer state (handles both int and string identifiers)
+        state_value = _get_state_value(mapping_value)
+
+        # Convert numeric state value to State enum
+        st = State(state_value)
+
         yield Result(
             state=st,
             summary=f"Status: {status}",
@@ -208,8 +252,11 @@ def _check_individual_trunk(item: str, trunk_data: Dict[str, Any]) -> Iterable[R
         yield Result(state=State.UNKNOWN, summary="Utilization: invalid values")
         return
 
+    utilization_levels = params.get("utilization_levels", DEFAULT_PARAMS["utilization_levels"])
+
     yield from check_levels(
         pcti,
+        levels_upper=utilization_levels,  # SimpleLevels already returns ("fixed", (warn, crit)) format
         label="Utilization %",
         metric_name="utilization_pct",
         boundaries=(0, 100),
@@ -217,7 +264,7 @@ def _check_individual_trunk(item: str, trunk_data: Dict[str, Any]) -> Iterable[R
     )
 
 
-def _check_logical_group(group_name: str, member_names: list, trunks: Dict[str, Dict[str, Any]]) -> Iterable[Result | Metric]:
+def _check_logical_group(group_name: str, member_names: list, trunks: Dict[str, Dict[str, Any]], params: Mapping[str, Any]) -> Iterable[Result | Metric]:
     """Check logic for logical trunk groups - aggregates member data."""
     
     member_data = []
@@ -236,35 +283,47 @@ def _check_logical_group(group_name: str, member_names: list, trunks: Dict[str, 
     )
 
     # --- Status evaluation for group ---
-    # Map member statuses
+    status_mapping = params.get("status_mapping", DEFAULT_PARAMS["status_mapping"])
+
+    # Map member statuses and calculate their states
     member_statuses = []
     problem_members = []  # Members that are not "In Service"
-    
+
     for member_name, member_trunk in member_data:
         status = member_trunk.get("status")
         norm_status = _normalize_status(status) if isinstance(status, str) else ""
-        member_statuses.append((member_name, status, norm_status))
-        
+
+        # Determine state value for this member
+        if norm_status == "inservice":
+            mapping_value = status_mapping.get("inservice", 0)
+        elif norm_status == "pending":
+            mapping_value = status_mapping.get("pending", 1)
+        else:
+            mapping_value = status_mapping.get("other", 2)
+
+        # Convert mapping value to integer state (handles both int and string identifiers)
+        state_value = _get_state_value(mapping_value)
+
+        member_statuses.append((member_name, status, norm_status, state_value))
+
         if norm_status not in ("inservice",):
             problem_members.append((member_name, status))
     
     # Determine group status based on member statuses
+    # Group state is the worst (highest) state among all members
+    worst_state_value = max(state_value for _, _, _, state_value in member_statuses)
+    group_state = State(worst_state_value)
+
+    # Generate appropriate summary
     if not problem_members:
-        # All members in service
-        group_state = State.OK
         group_summary = "All members In Service"
     else:
-        # Check if ALL members have problems or just some
-        in_service_count = sum(1 for _, _, norm_s in member_statuses if norm_s == "inservice")
-        
+        in_service_count = sum(1 for _, _, norm_s, _ in member_statuses if norm_s == "inservice")
+
         if in_service_count == 0:
-            # All members have issues
-            group_state = State.CRIT
             problem_list = ", ".join([f"{name}({status})" for name, status in problem_members])
             group_summary = f"All members problematic: {problem_list}"
         else:
-            # Some members have issues
-            group_state = State.WARN
             problem_list = ", ".join([f"{name}({status})" for name, status in problem_members])
             group_summary = f"Member(s) problematic: {problem_list}"
     
@@ -316,8 +375,11 @@ def _check_logical_group(group_name: str, member_names: list, trunks: Dict[str, 
         yield Result(state=State.UNKNOWN, summary="Aggregated Utilization: invalid values")
         return
 
+    utilization_levels = params.get("utilization_levels", DEFAULT_PARAMS["utilization_levels"])
+
     yield from check_levels(
         pcti,
+        levels_upper=utilization_levels,  # SimpleLevels format
         label="Aggregated Utilization %",
         metric_name="utilization_pct",
         boundaries=(0, 100),
@@ -325,7 +387,7 @@ def _check_logical_group(group_name: str, member_names: list, trunks: Dict[str, 
     )
 
 
-def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Result | Metric]:
+def check_inteliquent_trunk_groups(item: str, params: Mapping[str, Any], section: Section) -> Iterable[Result | Metric]:
     """Main check function for both individual and grouped trunk groups."""
     trunks = section.get("__trunks__", {})
     logical_groups = section.get("__logical_groups__", {})
@@ -338,7 +400,7 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
             return
 
         member_names = logical_groups[group_name]
-        yield from _check_logical_group(group_name, member_names, trunks)
+        yield from _check_logical_group(group_name, member_names, trunks, params)
     else:
         # Check individual trunk
         if item not in trunks:
@@ -346,21 +408,23 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
             return
         
         trunk_data = trunks[item]
-        yield from _check_individual_trunk(item, trunk_data)
+        yield from _check_individual_trunk(item, trunk_data, params)
 
 
 # --------------------------
 # Registration
 # --------------------------
 
-agent_section_inteliquent_api = AgentSection(
-    name="inteliquent_trunk_groups",
+agent_section_inteliquent_trunks = AgentSection(
+    name="inteliquent_trunks",
     parse_function=parse_inteliquent_trunk_groups,
 )
 
-check_plugin_inteliquent_api = CheckPlugin(
-    name="inteliquent_trunk_groups",
+check_plugin_inteliquent_trunks = CheckPlugin(
+    name="inteliquent_trunks",
     service_name="trunk %s",
     discovery_function=discover_inteliquent_trunk_groups,
     check_function=check_inteliquent_trunk_groups,
+    check_default_parameters=DEFAULT_PARAMS,
+    check_ruleset_name="inteliquent_trunks",  # Links this check to the ruleset
 )
