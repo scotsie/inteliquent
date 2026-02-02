@@ -358,9 +358,17 @@ agent_section_inteliquent_api = AgentSection(
     parse_function=parse_inteliquent_trunk_groups,
 )
 
+def _service_name(item: str) -> str:
+    """Format service name - handle logical groups specially."""
+    if item.startswith("__group__"):
+        group_name = item[len("__group__"):]
+        return f"trunk group {group_name}"
+    return f"trunk {item}"
+
+
 check_plugin_inteliquent_api = CheckPlugin(
     name="inteliquent_trunk_groups",
-    service_name="trunk %s",
+    service_name=_service_name,
     discovery_function=discover_inteliquent_trunk_groups,
     check_function=check_inteliquent_trunk_groups,
 )

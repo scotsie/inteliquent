@@ -54,7 +54,6 @@ def _form_special_agent_inteliquent_api() -> Dictionary:
                             "group_name": DictElement(
                                 parameter_form=String(title=Title("Group Name")),
                                 required=True,
-                                help_text=Help("Logical name for the group, e.g., 'North America', 'EMEA', 'Production'"),
                             ),
                             "trunk_group_members": DictElement(
                                 parameter_form=List(
@@ -65,14 +64,12 @@ def _form_special_agent_inteliquent_api() -> Dictionary:
                                     ),
                                 ),
                                 required=True,
-                                help_text=Help("List of trunk group names that belong to this logical group"),
                             ),
                         },
                     ),
                     editable_order=True,
                 ),
                 required=False,
-                help_text=Help("Optional: Define logical groups to aggregate trunk group metrics"),
             ),
         },
     )
