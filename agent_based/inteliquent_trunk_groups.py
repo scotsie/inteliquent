@@ -353,15 +353,6 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
 # Registration
 # --------------------------
 
-def _get_service_name(item: str) -> str:
-    """Generate service name, with special handling for logical groups."""
-    if item.startswith("__group__"):
-        group_name = item[len("__group__"):]
-        return f"trunk group {group_name}"
-    else:
-        return f"trunk {item}"
-
-
 agent_section_inteliquent_api = AgentSection(
     name="inteliquent_trunk_groups",
     parse_function=parse_inteliquent_trunk_groups,
@@ -369,7 +360,7 @@ agent_section_inteliquent_api = AgentSection(
 
 check_plugin_inteliquent_api = CheckPlugin(
     name="inteliquent_trunk_groups",
-    service_name=_get_service_name,
+    service_name="trunk %s",
     discovery_function=discover_inteliquent_trunk_groups,
     check_function=check_inteliquent_trunk_groups,
 )
