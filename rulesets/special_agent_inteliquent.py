@@ -39,6 +39,41 @@ def _form_special_agent_inteliquent_api() -> Dictionary:
                 ),
                 required=True,
             ),
+            "logical_groups": DictElement(
+                parameter_form=List(
+                    title=Title("Logical Trunk Groups"),
+                    help_text=Help(
+                        "Define logical groupings of trunk groups. Metrics from member trunk groups "
+                        "will be aggregated under a single service 'trunk group <group_name>'. "
+                        "Trunk groups not assigned to a logical group will still be monitored individually. "
+                        "Leave empty to monitor individual trunk groups only."
+                    ),
+                    element_template=Dictionary(
+                        title=Title("Logical Group"),
+                        elements={
+                            "group_name": DictElement(
+                                parameter_form=String(title=Title("Group Name")),
+                                required=True,
+                                help_text=Help("Logical name for the group, e.g., 'North America', 'EMEA', 'Production'"),
+                            ),
+                            "trunk_group_members": DictElement(
+                                parameter_form=List(
+                                    title=Title("Member Trunk Groups"),
+                                    element_template=String(
+                                        title=Title("Trunk Group Name"),
+                                        help_text=Help("Exact trunk group name from Inteliquent API")
+                                    ),
+                                ),
+                                required=True,
+                                help_text=Help("List of trunk group names that belong to this logical group"),
+                            ),
+                        },
+                    ),
+                    editable_order=True,
+                ),
+                required=False,
+                help_text=Help("Optional: Define logical groups to aggregate trunk group metrics"),
+            ),
         },
     )
 
