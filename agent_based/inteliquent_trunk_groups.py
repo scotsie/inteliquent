@@ -115,15 +115,15 @@ def discover_inteliquent_trunk_groups(section: Section) -> Iterable[Service]:
     trunks = section.get("__trunks__", {})
     logical_groups = section.get("__logical_groups__", {})
     grouped_trunks = section.get("__grouped_trunks__", set())
-    
+
     # Discover individual trunk services (only if not in a logical group)
     for trunk_name in sorted(trunks.keys()):
         if trunk_name not in grouped_trunks:
             yield Service(item=trunk_name)
-    
+
     # Discover logical group services
     for group_name in sorted(logical_groups.keys()):
-        yield Service(item=f"__group__{group_name}")
+        yield Service(item=f"group {group_name}")
 
 
 # --------------------------
@@ -331,12 +331,12 @@ def check_inteliquent_trunk_groups(item: str, section: Section) -> Iterable[Resu
     logical_groups = section.get("__logical_groups__", {})
     
     # Check if this is a logical group service
-    if item.startswith("__group__"):
-        group_name = item[len("__group__"):]
+    if item.startswith("group "):
+        group_name = item[len("group "):]
         if group_name not in logical_groups:
             yield Result(state=State.UNKNOWN, summary=f"Logical group '{group_name}' not found")
             return
-        
+
         member_names = logical_groups[group_name]
         yield from _check_logical_group(group_name, member_names, trunks)
     else:
@@ -358,17 +358,9 @@ agent_section_inteliquent_api = AgentSection(
     parse_function=parse_inteliquent_trunk_groups,
 )
 
-def _service_name(item: str) -> str:
-    """Format service name - handle logical groups specially."""
-    if item.startswith("__group__"):
-        group_name = item[len("__group__"):]
-        return f"trunk group {group_name}"
-    return f"trunk {item}"
-
-
 check_plugin_inteliquent_api = CheckPlugin(
     name="inteliquent_trunk_groups",
-    service_name=_service_name,
+    service_name="trunk %s",
     discovery_function=discover_inteliquent_trunk_groups,
     check_function=check_inteliquent_trunk_groups,
 )
