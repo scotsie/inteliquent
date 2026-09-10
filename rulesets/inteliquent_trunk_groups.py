@@ -72,6 +72,20 @@ def _form_inteliquent_trunks() -> Dictionary:
                             ),
                             required=True,
                         ),
+                        "pendingdisconnect": DictElement(
+                            parameter_form=SingleChoice(
+                                title=Title("Pending Disconnect status"),
+                                help_text=Help("Monitoring state when trunk is 'Pending Disconnect'"),
+                                elements=[
+                                    SingleChoiceElement(name="ok", title=Title("OK")),
+                                    SingleChoiceElement(name="warning", title=Title("WARNING")),
+                                    SingleChoiceElement(name="critical", title=Title("CRITICAL")),
+                                    SingleChoiceElement(name="unknown", title=Title("UNKNOWN")),
+                                ],
+                                prefill=DefaultValue("warning"),
+                            ),
+                            required=True,
+                        ),
                         "other": DictElement(
                             parameter_form=SingleChoice(
                                 title=Title("Other status"),

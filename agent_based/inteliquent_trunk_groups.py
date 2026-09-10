@@ -12,13 +12,13 @@ Discovery:
   - One service per logical group ('trunk group <group_name>')
 
 Check (Individual Trunks):
-  - Status: OK if 'In Service', WARN if 'Pending', CRIT if other, UNKNOWN if missing
+  - Status: OK if 'In Service', WARN if 'Pending' or 'Pending Disconnect', CRIT if other, UNKNOWN if missing
   - Utilization: WARN >= 80%, CRIT >= 90%, UNKNOWN if missing
 
 Check (Logical Groups):
   - Status: OK if all members In Service
-  - Status: WARN if 1+ members Pending or not In Service (with indicator of problematic member)
-  - Status: CRIT if ALL members Pending or not In Service
+  - Status: WARN if 1+ members Pending/Pending Disconnect or not In Service (with indicator of problematic member)
+  - Status: CRIT if ALL members Pending/Pending Disconnect or not In Service
   - Utilization: Aggregated from all member trunks
 
 Metrics: inCalls, outCalls, capacity, utilization_pct
@@ -44,9 +44,10 @@ Section = Mapping[str, Any]  # Contains individual trunks, grouped trunks, and m
 DEFAULT_PARAMS = {
     "utilization_levels": ("fixed", (80, 90)),  # SimpleLevels format: (type, (warn, crit))
     "status_mapping": {
-        "inservice": 0,  # OK
-        "pending": 1,    # WARN
-        "other": 2,      # CRIT
+        "inservice": 0,          # OK
+        "pending": 1,            # WARN
+        "pendingdisconnect": 1,  # WARN
+        "other": 2,              # CRIT
     }
 }
 
@@ -170,6 +171,23 @@ def _get_state_value(mapping_value: Any) -> int:
     return 3  # Default to UNKNOWN for any other type
 
 
+def _classify_status(norm_status: str, status_mapping: Mapping[str, Any]) -> int:
+    """
+    Map a normalized status string to a resolved integer state value,
+    using the configured (or default) status_mapping buckets.
+    """
+    if norm_status == "inservice":
+        mapping_value = status_mapping.get("inservice", 0)
+    elif norm_status == "pending":
+        mapping_value = status_mapping.get("pending", 1)
+    elif norm_status == "pendingdisconnect":
+        mapping_value = status_mapping.get("pendingdisconnect", 1)
+    else:
+        mapping_value = status_mapping.get("other", 2)
+
+    return _get_state_value(mapping_value)
+
+
 def _check_individual_trunk(item: str, trunk_data: Dict[str, Any], params: Mapping[str, Any]) -> Iterable[Result | Metric]:
     """Check logic for individual trunk groups."""
     
@@ -188,16 +206,8 @@ def _check_individual_trunk(item: str, trunk_data: Dict[str, Any], params: Mappi
         norm = _normalize_status(status)
         status_mapping = params.get("status_mapping", DEFAULT_PARAMS["status_mapping"])
 
-        # Map the normalized status to a state value
-        if norm == "inservice":
-            mapping_value = status_mapping.get("inservice", 0)
-        elif norm == "pending":
-            mapping_value = status_mapping.get("pending", 1)
-        else:
-            mapping_value = status_mapping.get("other", 2)
-
-        # Convert mapping value to integer state (handles both int and string identifiers)
-        state_value = _get_state_value(mapping_value)
+        # Map the normalized status to a resolved state value
+        state_value = _classify_status(norm, status_mapping)
 
         # Convert numeric state value to State enum
         st = State(state_value)
@@ -294,15 +304,7 @@ def _check_logical_group(group_name: str, member_names: list, trunks: Dict[str, 
         norm_status = _normalize_status(status) if isinstance(status, str) else ""
 
         # Determine state value for this member
-        if norm_status == "inservice":
-            mapping_value = status_mapping.get("inservice", 0)
-        elif norm_status == "pending":
-            mapping_value = status_mapping.get("pending", 1)
-        else:
-            mapping_value = status_mapping.get("other", 2)
-
-        # Convert mapping value to integer state (handles both int and string identifiers)
-        state_value = _get_state_value(mapping_value)
+        state_value = _classify_status(norm_status, status_mapping)
 
         member_statuses.append((member_name, status, norm_status, state_value))
 
