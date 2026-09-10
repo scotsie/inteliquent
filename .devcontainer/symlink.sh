@@ -18,7 +18,7 @@ link_tree() {
     done
 }
 
-PKGNAME=$(python3 -c 'print(eval(open("package.manifest").read())["name"])')
+PKGNAME=$(python3 -c 'print(eval(open("package").read())["name"])')
 PLUGIN_DIR=$OMD_ROOT/local/lib/python3/cmk_addons/plugins/$PKGNAME
 
 rm -rf $PLUGIN_DIR
