@@ -84,7 +84,7 @@ def _form_inteliquent_trunks() -> Dictionary:
                                 ],
                                 prefill=DefaultValue("warning"),
                             ),
-                            required=True,
+                            required=False,
                         ),
                         "other": DictElement(
                             parameter_form=SingleChoice(
