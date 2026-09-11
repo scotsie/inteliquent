@@ -225,8 +225,8 @@ def _check_individual_trunk(item: str, trunk_data: Dict[str, Any], params: Mappi
         return
 
     # --- Utilization evaluation & metrics ---
-    # Skip utilization check for Pending trunks (utilization is null/not available)
-    if _normalize_status(status) == "pending":
+    # Skip utilization check for Pending/Pending Disconnect trunks (utilization is null/not available)
+    if _normalize_status(status) in ("pending", "pendingdisconnect"):
         return
 
     util = trunk_data.get("utilization") or {}
@@ -344,8 +344,8 @@ def _check_logical_group(group_name: str, member_names: list, trunks: Dict[str, 
         status = member_trunk.get("status")
         norm_status = _normalize_status(status) if isinstance(status, str) else ""
         
-        # Skip utilization for Pending members
-        if norm_status == "pending":
+        # Skip utilization for Pending/Pending Disconnect members
+        if norm_status in ("pending", "pendingdisconnect"):
             continue
         
         util = member_trunk.get("utilization") or {}
