@@ -53,14 +53,6 @@ metric_inteliquent_utilization_pct = Metric(
 )
 
 
-metric_inteliquent_active_sessions = Metric(
-    name="active_sessions",
-    title=Title("Active Sessions"),
-    unit=unit_count,
-    color=Color.GREEN
-)
-
-
 graph_inteliquent_trunk_utilization = Graph(
     name="inteliquent_trunk_utilization",
     title=Title("Trunk Utilization"),
